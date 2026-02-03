@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: extprocserver
+  namespace: kgateway-system
+spec:
+  selector:
+    matchLabels:
+      run: extprocserver
+  template:
+    metadata:
+      labels:
+        run: extprocserver
+    spec:
+      containers:
+        - name: extprocserver
+          image: jacobharness/extprocserver:devv8
+          ports:
+            - containerPort: 5441
+            - containerPort: 5442
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: extprocserver
+  namespace: kgateway-system
+spec:
+  type: NodePort
+  selector:
+    run: extprocserver
+  ports:
+    - port: 5441
+      name: direct
+      targetPort: 5441
+      nodePort: 30003
+      protocol: TCP
+    - port: 5442
+      name: h2c
+      targetPort: 5442
+      nodePort: 30002
+      protocol: TCP
