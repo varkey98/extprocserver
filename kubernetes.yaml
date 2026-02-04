@@ -14,10 +14,17 @@ spec:
     spec:
       containers:
         - name: extprocserver
-          image: jacobharness/extprocserver:devv8
+          image: jacobharness/extprocserver:devv11
           ports:
             - containerPort: 5441
             - containerPort: 5442
+          env:
+            - name: GRPC_GO_LOG_VERBOSITY_LEVEL
+              value: "99"
+            - name: GRPC_GO_LOG_SEVERITY_LEVEL
+              value: "info"
+            - name: GODEBUG
+              value: "http2debug=2"
 ---
 
 apiVersion: v1
@@ -35,8 +42,10 @@ spec:
       targetPort: 5441
       nodePort: 30003
       protocol: TCP
+      appProtocol: kubernetes.io/h2c
     - port: 5442
       name: h2c
       targetPort: 5442
       nodePort: 30002
       protocol: TCP
+      appProtocol: kubernetes.io/h2c

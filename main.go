@@ -16,6 +16,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
@@ -24,7 +25,21 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	cert, err := tls.LoadX509KeyPair("domain.crt", "domain.key")
+	if err != nil {
+		log.Fatalf("failed to load cert/key: %v", err)
+	}
+
+	// TLS config — THIS IS IMPORTANT
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS12,
+		NextProtos:   []string{"h2"}, // 🔥 REQUIRED for gRPC
+	}
+
+	creds := credentials.NewTLS(tlsConfig)
+
+	grpcServer := grpc.NewServer(grpc.Creds(creds))
 	extprocv3.RegisterExternalProcessorServer(grpcServer, extproc.NewExtprocV3Server())
 
 	go func() {

@@ -7,6 +7,8 @@ import (
 	_ "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	extprocv3 "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/type/v3"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -30,7 +32,7 @@ func (s *ExtprocV3Server) Process(srv extprocv3.ExternalProcessor_ProcessServer)
 		req, err := srv.Recv()
 		if err != nil {
 			log.Printf("error occurred while receiving message %v\n", err)
-			return nil
+			return status.Error(codes.Internal, "error occurred while receiving message")
 		}
 
 		json, _ := protojson.Marshal(req)
@@ -43,7 +45,9 @@ func (s *ExtprocV3Server) Process(srv extprocv3.ExternalProcessor_ProcessServer)
 			res = &extprocv3.ProcessingResponse{
 				Response: &extprocv3.ProcessingResponse_RequestHeaders{
 					RequestHeaders: &extprocv3.HeadersResponse{
-						Response: continueResponse,
+						Response: &extprocv3.CommonResponse{
+							Status: extprocv3.CommonResponse_CONTINUE,
+						},
 					},
 				},
 			}
@@ -52,7 +56,9 @@ func (s *ExtprocV3Server) Process(srv extprocv3.ExternalProcessor_ProcessServer)
 			res = &extprocv3.ProcessingResponse{
 				Response: &extprocv3.ProcessingResponse_RequestBody{
 					RequestBody: &extprocv3.BodyResponse{
-						Response: continueResponse,
+						Response: &extprocv3.CommonResponse{
+							Status: extprocv3.CommonResponse_CONTINUE,
+						},
 					},
 				},
 			}
@@ -68,7 +74,9 @@ func (s *ExtprocV3Server) Process(srv extprocv3.ExternalProcessor_ProcessServer)
 			res = &extprocv3.ProcessingResponse{
 				Response: &extprocv3.ProcessingResponse_ResponseHeaders{
 					ResponseHeaders: &extprocv3.HeadersResponse{
-						Response: continueResponse,
+						Response: &extprocv3.CommonResponse{
+							Status: extprocv3.CommonResponse_CONTINUE,
+						},
 					},
 				},
 			}
@@ -77,7 +85,9 @@ func (s *ExtprocV3Server) Process(srv extprocv3.ExternalProcessor_ProcessServer)
 			res = &extprocv3.ProcessingResponse{
 				Response: &extprocv3.ProcessingResponse_ResponseBody{
 					ResponseBody: &extprocv3.BodyResponse{
-						Response: continueResponse,
+						Response: &extprocv3.CommonResponse{
+							Status: extprocv3.CommonResponse_CONTINUE,
+						},
 					},
 				},
 			}
@@ -95,7 +105,7 @@ func (s *ExtprocV3Server) Process(srv extprocv3.ExternalProcessor_ProcessServer)
 		err = srv.Send(res)
 		if err != nil {
 			log.Printf("error occurred while sending message %v\n", err)
-			return nil
+			return status.Error(codes.Internal, "error occurred while sending message")
 		}
 	}
 }
