@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: extprocserver
-          image: jacobharness/extprocserver:devv11
+          image: jacobharness/extprocserver:devv14
           ports:
             - containerPort: 5441
             - containerPort: 5442
@@ -40,12 +40,12 @@ spec:
     - port: 5441
       name: direct
       targetPort: 5441
-      nodePort: 30003
+      nodePort: 30009
       protocol: TCP
-      appProtocol: kubernetes.io/h2c
+      appProtocol: http2 # required for both tls and h2c
     - port: 5442
       name: h2c
       targetPort: 5442
-      nodePort: 30002
+      nodePort: 30010
       protocol: TCP
       appProtocol: kubernetes.io/h2c

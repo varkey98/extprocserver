@@ -8,6 +8,7 @@ import (
 	extprocv3 "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 	_ "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -28,13 +29,16 @@ func NewExtprocV3Server() *ExtprocV3Server {
 
 func (s *ExtprocV3Server) Process(srv extprocv3.ExternalProcessor_ProcessServer) error {
 
+	ctx := srv.Context()
+	md, _ := metadata.FromIncomingContext(ctx)
+	fmt.Println("Incoming metadata")
+	fmt.Println(md)
 	for {
 		req, err := srv.Recv()
 		if err != nil {
 			log.Printf("error occurred while receiving message %v\n", err)
 			return status.Error(codes.Internal, "error occurred while receiving message")
 		}
-
 		json, _ := protojson.Marshal(req)
 		log.Printf("Received message %s\n", string(json))
 

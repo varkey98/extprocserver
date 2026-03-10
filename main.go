@@ -11,35 +11,36 @@ import (
 	"net/url"
 
 	"extprocserver/extproc"
+
 	extprocv3 "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
-	lis, err := net.Listen("tcp", ":5441")
+	lis, err := net.Listen("tcp", ":8441")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	cert, err := tls.LoadX509KeyPair("domain.crt", "domain.key")
-	if err != nil {
-		log.Fatalf("failed to load cert/key: %v", err)
-	}
+	//cert, err := tls.LoadX509KeyPair("domain.crt", "domain.key")
+	//if err != nil {
+	//	log.Fatalf("failed to load cert/key: %v", err)
+	//}
+	//
+	//// TLS config — THIS IS IMPORTANT
+	//tlsConfig := &tls.Config{
+	//	Certificates: []tls.Certificate{cert},
+	//	MinVersion:   tls.VersionTLS12,
+	//	NextProtos:   []string{"h2"}, // 🔥 REQUIRED for gRPC
+	//}
+	//
+	//creds := credentials.NewTLS(tlsConfig)
 
-	// TLS config — THIS IS IMPORTANT
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		MinVersion:   tls.VersionTLS12,
-		NextProtos:   []string{"h2"}, // 🔥 REQUIRED for gRPC
-	}
-
-	creds := credentials.NewTLS(tlsConfig)
-
-	grpcServer := grpc.NewServer(grpc.Creds(creds))
+	grpcServer := grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
 	extprocv3.RegisterExternalProcessorServer(grpcServer, extproc.NewExtprocV3Server())
 
 	go func() {
@@ -76,7 +77,7 @@ func main() {
 		Handler: h2cHandler,
 	}
 
-	restLis, err := net.Listen("tcp", ":5442")
+	restLis, err := net.Listen("tcp", ":8442")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
